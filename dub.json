@@ -1,0 +1,13 @@
+{
+    "name": "raylib-d-template",
+    "description": "A minimal D application.",
+    "license": "proprietary",
+    "authors": ["YOU"],
+    "dependencies": {
+        "raylib-d": "*"
+    },
+    "libs": ["raylib"],
+    "lflags-posix": ["-L."],
+    "lflags-osx": ["-rpath", "@executable_path/"],
+    "lflags-linux": ["-rpath=$$ORIGIN"]
+}
