@@ -6,8 +6,20 @@
     "dependencies": {
         "raylib-d": "*"
     },
-    "libs": ["raylib"],
-    "lflags-posix": ["-L."],
-    "lflags-osx": ["-rpath", "@executable_path/"],
-    "lflags-linux": ["-rpath=$$ORIGIN"]
+    "configurations": [
+        {
+            "name": "default",
+            "targetType": "executable",
+            "libs": ["raylib"],
+            "lflags-posix": ["-L."],
+            "lflags-osx": ["-rpath", "@executable_path/"],
+            "lflags-linux": ["-rpath=$$ORIGIN"]
+        },
+        {
+            "name": "wasm",
+            "targetType": "library",
+            "targetName": "game_wasm",
+            "dflags": ["-mtriple=wasm32-unknown-unknown-wasm", "-checkaction=halt", "-betterC", "-i", "--release"]
+        }
+    ]
 }
