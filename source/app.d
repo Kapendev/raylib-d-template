@@ -1,6 +1,6 @@
 import raylib;
 
-// Called every frame. If true is returned, then the app will stop running.
+// The main loop. If true is returned, then the app will stop running.
 bool update() {
     BeginDrawing();
     ClearBackground(Color(96, 96, 96, 255));
@@ -10,8 +10,8 @@ bool update() {
     return false;
 }
 
-// The app config function.
-void main() {
+// The initialization function.
+void ready() {
     SetConfigFlags(ConfigFlags.FLAG_VSYNC_HINT | ConfigFlags.FLAG_WINDOW_RESIZABLE);
     InitWindow(1280, 720, "My Cool Title");
     SetTargetFPS(60);
@@ -89,4 +89,11 @@ version (WebAssembly) {
     void emscripten_set_main_loop(void* ptr, int fps, bool loop);
     extern(C) @system nothrow @nogc
     void emscripten_cancel_main_loop();
+}
+
+// -betterC trick.
+version (D_BetterC) {
+    extern(C) void main() { ready(); }
+} else {
+    void main() { ready(); }
 }
