@@ -10,6 +10,7 @@
         {
             "name": "default",
             "targetType": "executable",
+            "targetName": "game",
             "libs": ["raylib"],
             "lflags-posix": ["-L."],
             "lflags-osx": ["-rpath", "@executable_path/"],
@@ -17,9 +18,9 @@
         },
         {
             "name": "wasm",
-            "targetType": "library",
+            "targetType": "staticLibrary",
             "targetName": "game_wasm",
-            "dflags": ["-mtriple=wasm32-unknown-unknown-wasm", "-checkaction=halt", "-betterC", "-i", "--release"]
+            "dflags": ["-i", "-betterC", "-checkaction=halt"]
         }
     ]
 }

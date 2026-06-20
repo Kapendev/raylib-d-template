@@ -4,7 +4,7 @@ int main(string[] args) {
     auto flags = Flags();
     foreach (arg; args) {
         static foreach (flagIndex, flagName; Flags.tupleof) {
-            if (arg == flagName.stringof) flags.tupleof[flagIndex] = true;
+            if (arg.stripLeft("-").stripLeft("-") == flagName.stringof) flags.tupleof[flagIndex] = true;
         }
     }
 
@@ -28,7 +28,11 @@ int main(string[] args) {
         faviconDummy = true;
     }
 
-    if (doGcProject(flags, corePaths)) return 1;
+    if (flags.gcProject) {
+        if (doGcProject(flags, corePaths)) return 1;
+    } else {
+        if (doNoGcProject(flags, corePaths)) return 1;
+    }
     removeObjectFilesFromFolder(".");
     std.file.remove(corePaths.emscriptenShellPath);
     if (faviconDummy) std.file.remove(corePaths.faviconPath);
@@ -38,21 +42,96 @@ int main(string[] args) {
 
 int doGcProject(in Flags flags, in CorePaths corePaths) {
     enum packageName = "raylib-d";
-    enum packageLink = "https://github.com/schveiguy/raylib-d";
+    enum packageRepoLink = "https://github.com/schveiguy/raylib-d";
 
     auto packagePath = packageName;
-    if (!packagePath.exists) packagePath = buildPath(corePaths.webPath, packagePath);
-    if (!packagePath.exists) packagePath = getPathFromDub(packageName);
-    if (!packagePath.exists) {
-        packagePath = buildPath(corePaths.webPath, packagePath);
-        runCmd(["git", "clone", "--depth", "1", packageLink, packagePath]);
+    auto packageSourcePath = packageName;
+    setPackagePaths(packagePath, packageSourcePath, packageName, packageRepoLink, corePaths);
+    auto isPackageOutsideSource = true;
+    auto sourceFilePaths = getSourceFilePaths(isPackageOutsideSource, packageName, packageSourcePath, corePaths);
+
+    string[] cmdArgs = ["opend"];
+    if (flags.debugBuild) {
+        cmdArgs ~= "build";
+    } else {
+        cmdArgs ~= "publish";
     }
-    auto packageSourcePath = buildPath(packagePath, "source");
+    cmdArgs ~= ["--target=emscripten", "-of" ~ corePaths.outputPath];
+    cmdArgs ~= sourceFilePaths;
+    cmdArgs.appendIncludePaths(packageSourcePath, isPackageOutsideSource, corePaths);
+    cmdArgs.appendLinkerFlags(true, corePaths);
+
+    auto result = runCmd(cmdArgs);
+    if (result.status) writeln("NOTE: OpenD is available at: https://opendlang.org");
+    return result.status;
+}
+
+// NOTE: Does not work with raylib-d for some reason.
+//  Might not be raylib-d. No idea. Tell me if you find the reason.
+int doNoGcProject(in Flags flags, in CorePaths corePaths) {
+    enum packageName = "raylib-d";
+    enum packageRepoLink = "https://github.com/schveiguy/raylib-d";
+    enum dubConfigName = "wasm";
+    enum dubOutputName = "game_wasm";
+
+    auto packagePath = packageName;
+    auto packageSourcePath = packageName;
+    setPackagePaths(packagePath, packageSourcePath, packageName, packageRepoLink, corePaths);
+    auto isPackageOutsideSource = true;
+    auto sourceFilePaths = getSourceFilePaths(isPackageOutsideSource, packageName, packageSourcePath, corePaths);
+
+    if (flags.buildWithDub) {
+        string[] cmdArgs = ["dub", "build", "--compiler=ldc2", "--arch=wasm32-unknown-unknown-wasm", "--config", dubConfigName];
+        if (!flags.debugBuild) cmdArgs ~= ["--build", "release"];
+        if (runCmd(cmdArgs).status) return 1;
+    } else {
+        string[] cmdArgs = ["ldc2", "-c", "-i", "-betterC", "-checkaction=halt", "-mtriple=wasm32-unknown-unknown-wasm"];
+        if (!flags.debugBuild) cmdArgs ~= "--release";
+        cmdArgs ~= sourceFilePaths;
+        cmdArgs ~= "-I=" ~ corePaths.sourcePath;
+        cmdArgs ~= "-J=" ~ packageSourcePath;
+        if (runCmd(cmdArgs).status) return 1;
+    }
+
+    string[] cmdArgs = [emccName, "-o", corePaths.outputPath, corePaths.libPath];
+    cmdArgs.appendLinkerFlags(false, corePaths);
+    auto dubOutputPath = "";
+    if (flags.buildWithDub) {
+        foreach (entry; dirEntries(corePaths.assetsPath, SpanMode.shallow)) {
+            auto path = entry.name;
+            if (path.findStart(dubOutputName) != -1) {
+                dubOutputPath = path;
+                break;
+            }
+        }
+        cmdArgs ~= dubOutputPath;
+    } else {
+        foreach (entry; dirEntries(corePaths.assetsPath, SpanMode.shallow)) {
+            auto path = entry.name;
+            if (path.endsWith(".o")) cmdArgs ~= path;
+        }
+    }
+
+    auto result = runCmd(cmdArgs);
+    if (dubOutputPath.length) std.file.remove(dubOutputPath);
+    return result.status;
+}
+
+void setPackagePaths(ref string packagePath, ref string packageSourcePath, string packageName, string packageRepoLink, in CorePaths corePaths) {
+    if (!packagePath.exists) packagePath = buildPath(corePaths.webPath, packagePath);
+    if (!packagePath.exists) packagePath = getPackagePathFromDub(packageName);
+    if (!packagePath.exists && packageRepoLink.length) {
+        packagePath = buildPath(corePaths.webPath, packagePath);
+        runCmd(["git", "clone", "--depth", "1", packageRepoLink, packagePath]);
+    }
+    packageSourcePath = buildPath(packagePath, "source");
     if (!packageSourcePath.exists) packageSourcePath = buildPath(packagePath, "src");
     if (!packageSourcePath.exists) packageSourcePath = packagePath;
+}
 
+string[] getSourceFilePaths(ref bool isPackageOutsideSource, string packageName, string packageSourcePath, in CorePaths corePaths) {
     string[] sourceFilePaths;
-    auto isPackageOutsideSource = true;
+    isPackageOutsideSource = true;
     foreach (entry; dirEntries(corePaths.sourcePath, SpanMode.breadth)) {
         auto path = entry.name;
         if (path.endsWith(".d")) {
@@ -68,50 +147,10 @@ int doGcProject(in Flags flags, in CorePaths corePaths) {
             }
         }
     }
-
-    string[] cmdArgs = ["opend"];
-    if (flags.isDebugBuild) {
-        cmdArgs ~= "build";
-    } else {
-        cmdArgs ~= "publish";
-    }
-    cmdArgs ~= ["--target=emscripten", "-of" ~ corePaths.outputPath];
-    cmdArgs ~= sourceFilePaths;
-    cmdArgs ~= "-I=" ~ corePaths.sourcePath;
-    if (isPackageOutsideSource) {
-        cmdArgs ~= "-I=" ~ packageSourcePath;
-    }
-    cmdArgs.appendLinkerFlags(true, corePaths.emscriptenShellPath);
-    cmdArgs ~= "-L=" ~ corePaths.libPath;
-    // Check if the assets folder is empty because emcc will cry about it.
-    if (corePaths.assetsPath.exists) {
-        foreach (entry; dirEntries(corePaths.assetsPath, SpanMode.shallow)) {
-            auto path = entry.name;
-            if (path.exists) {
-                cmdArgs ~= "-L=--preload-file";
-                cmdArgs ~= "-L=" ~ corePaths.assetsPath;
-                break;
-            }
-        }
-    }
-    auto result = runCmd(cmdArgs);
-    if (result.status) writeln("NOTE: OpenD is available at: https://opendlang.org");
-    return result.status;
+    return sourceFilePaths;
 }
 
-void appendLinkerFlags(ref string[] cmdArgs, bool hasLinkerPrefix, string emscriptenShellPath) {
-    auto startIndex = hasLinkerPrefix ? 0 : 3;
-    cmdArgs ~= "-L=-DPLATFORM_WEB"[startIndex .. $];
-    cmdArgs ~= "-L=-sEXPORTED_RUNTIME_METHODS=HEAPF32,requestFullscreen"[startIndex .. $];
-    cmdArgs ~= "-L=-sUSE_GLFW=3"[startIndex .. $];
-    cmdArgs ~= "-L=-sERROR_ON_UNDEFINED_SYMBOLS=0"[startIndex .. $];
-    cmdArgs ~= "-L=-sINITIAL_MEMORY=67108864"[startIndex .. $];
-    cmdArgs ~= "-L=-sALLOW_MEMORY_GROWTH=1"[startIndex .. $];
-    cmdArgs ~= "-L=--shell-file"[startIndex .. $];
-    cmdArgs ~= ("-L=" ~ emscriptenShellPath)[startIndex .. $];
-}
-
-string getPathFromDub(string packageName, string packageSourceName = "source") {
+string getPackagePathFromDub(string packageName, string packageSourceName = "source") {
     auto target = buildPath(packageName, packageSourceName);
     version (Windows) {
         target ~= `\"`;
@@ -119,7 +158,7 @@ string getPathFromDub(string packageName, string packageSourceName = "source") {
         target ~= `/"`;
     }
 
-    auto content = runCmd(["dub", "describe"]).output;
+    auto content = runCmd(["dub", "describe"], false).output;
     auto lineIndex = size_t(0);
     foreach (i, c; content) {
         if (c != '\n') continue;
@@ -133,6 +172,37 @@ string getPathFromDub(string packageName, string packageSourceName = "source") {
     return "";
 }
 
+void appendIncludePaths(ref string[] cmdArgs, string packageSourcePath, bool isPackageOutsideSource, in CorePaths corePaths) {
+    cmdArgs ~= "-I=" ~ corePaths.sourcePath;
+    if (isPackageOutsideSource) {
+        cmdArgs ~= "-I=" ~ packageSourcePath;
+    }
+}
+
+void appendLinkerFlags(ref string[] cmdArgs, bool hasLinkerPrefix, in CorePaths corePaths) {
+    auto startIndex = hasLinkerPrefix ? 0 : 3;
+    cmdArgs ~= "-L=-DPLATFORM_WEB"[startIndex .. $];
+    cmdArgs ~= "-L=-sEXPORTED_RUNTIME_METHODS=HEAPF32,requestFullscreen"[startIndex .. $];
+    cmdArgs ~= "-L=-sUSE_GLFW=3"[startIndex .. $];
+    cmdArgs ~= "-L=-sERROR_ON_UNDEFINED_SYMBOLS=0"[startIndex .. $];
+    cmdArgs ~= "-L=-sINITIAL_MEMORY=67108864"[startIndex .. $];
+    cmdArgs ~= "-L=-sALLOW_MEMORY_GROWTH=1"[startIndex .. $];
+    cmdArgs ~= "-L=--shell-file"[startIndex .. $];
+    cmdArgs ~= ("-L=" ~ corePaths.emscriptenShellPath)[startIndex .. $];
+    cmdArgs ~= ("-L=" ~ corePaths.libPath)[startIndex .. $];
+    // Check if the assets folder is empty because emcc will cry about it.
+    if (corePaths.assetsPath.exists) {
+        foreach (entry; dirEntries(corePaths.assetsPath, SpanMode.shallow)) {
+            auto path = entry.name;
+            if (path.exists) {
+                cmdArgs ~= "-L=--preload-file"[startIndex .. $];
+                cmdArgs ~= ("-L=" ~ corePaths.assetsPath)[startIndex .. $];
+                break;
+            }
+        }
+    }
+}
+
 void removeObjectFilesFromFolder(string folderPath) {
     foreach (entry; dirEntries(folderPath, SpanMode.shallow)) {
         auto path = entry.name;
@@ -140,17 +210,26 @@ void removeObjectFilesFromFolder(string folderPath) {
     }
 }
 
-auto runCmd(string[] cmdArgs) {
+auto runCmd(string[] cmdArgs, bool canPrintOutput = true) {
     writeln("CMD:", cmdArgs);
     auto result = execute(cmdArgs);
-    if (result.status) writeln("\n", result.output, "\n");
+    if (canPrintOutput) writeln(result.output);
     return result;
 }
 
+int findStart(const(char)[] str, const(char)[] item) {
+    if (str.length < item.length || item.length == 0) return -1;
+    foreach (i; 0 .. str.length - item.length + 1) {
+        if (str[i .. i + item.length] == item) return cast(int) i;
+    }
+    return -1;
+}
+
 struct Flags {
-    // bool isGcProject;
-    bool isDebugBuild;
-    bool justBuild;
+    bool debugBuild   = false;
+    bool justBuild    = false;
+    bool gcProject    = true;
+    bool buildWithDub = true;
 }
 
 struct CorePaths {

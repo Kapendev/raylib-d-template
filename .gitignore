@@ -20,3 +20,5 @@ raylib-d-template-test-*
 *.lst
 *libraylib*
 index*
+game
+game_wasm
