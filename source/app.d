@@ -39,6 +39,7 @@ alias DrawText = drawText;
 /// Draw text (using default font).
 /// NOTE: fontSize work like in any drawing program but if fontSize is lower than font-base-size, then font-base-size is used.
 /// NOTE: chars spacing is proportional to fontSize.
+@trusted nothrow @nogc
 void drawText(const(char)[] text, int posX, int posY, int fontSize, Color color = Colors.WHITE, int textLineSpacing = 2) {
     enum defaultFontSize = 10; // Default Font chars height in pixel.
     if (fontSize < defaultFontSize) fontSize = defaultFontSize;
@@ -47,6 +48,7 @@ void drawText(const(char)[] text, int posX, int posY, int fontSize, Color color 
 
 /// Draw text using Font.
 /// NOTE: chars spacing is NOT proportional to fontSize.
+@trusted nothrow @nogc
 void drawText(Font font, const(char)[] text, Vector2 position, float fontSize, float spacing, Color tint = Colors.WHITE, int textLineSpacing = 2) {
     if (font.texture.id == 0) font = GetFontDefault();
     auto textOffsetY = 0.0f;                     // Offset between lines (on linebreak '\n').
@@ -74,6 +76,7 @@ void drawText(Font font, const(char)[] text, Vector2 position, float fontSize, f
 }
 
 /// Draw text using Font and pro parameters (rotation).
+@trusted nothrow @nogc
 void drawText(Font font, const(char)[] text, Vector2 position, Vector2 origin, float rotation, float fontSize, float spacing, Color tint = Colors.WHITE, int textLineSpacing = 2) {
     rlPushMatrix();
     rlTranslatef(position.x, position.y, 0.0f);
