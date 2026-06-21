@@ -1,10 +1,15 @@
 #!/bin/env -S dmd -run
 
+immutable string[] extraLdcFlags = [];
+immutable string[] extraOpendFlags = [];
+immutable string[] extraEmccFlags = [];
+
 struct Flags {
     bool debugBuild   = false; /// Can be used to make a debug build.
     bool gcBuild      = false; /// Can be used to enable GC features. This needs OpenD to work.
-    bool justBuild    = false; /// Can be used to avoid `emrun` after a successful build.
+    bool justBuild    = false; /// Can be used to avoid emrun after a successful build.
     bool buildWithDub = true;  /// Will use a DUB config to compile. More info inside the `doNoGcProject` function.
+    bool doNothing    = false; /// For testing the script without running emcc, dub, ...
 }
 
 struct CorePaths {
@@ -36,6 +41,10 @@ int main(string[] args) {
         static foreach (flagIndex, flagName; Flags.tupleof) {
             if (arg.stripLeft("-").stripLeft("-") == flagName.stringof) flags.tupleof[flagIndex] = true;
         }
+    }
+    if (flags.doNothing) {
+        writeln("Nothing.");
+        return 0;
     }
 
     auto corePaths = CorePaths();
@@ -90,6 +99,7 @@ int doGcProject(in Flags flags, in CorePaths corePaths) {
     cmdArgs ~= sourceFilePaths;
     cmdArgs.appendIncludePaths(packageSourcePath, isPackageOutsideSource, corePaths);
     cmdArgs.appendLinkerFlags(true, corePaths);
+    cmdArgs ~= extraOpendFlags;
 
     auto result = runCmd(cmdArgs);
     if (result.status) writeln("NOTE: OpenD is available at: https://opendlang.org");
@@ -120,6 +130,7 @@ int doNoGcProject(in Flags flags, in CorePaths corePaths) {
         cmdArgs ~= sourceFilePaths;
         cmdArgs ~= "-I=" ~ corePaths.sourcePath;
         cmdArgs ~= "-J=" ~ packageSourcePath;
+        cmdArgs ~= extraLdcFlags;
         if (runCmd(cmdArgs).status) return 1;
     }
 
@@ -142,6 +153,7 @@ int doNoGcProject(in Flags flags, in CorePaths corePaths) {
             if (path.endsWith(".o") && !path.baseName.startsWith("build")) cmdArgs ~= path;
         }
     }
+    cmdArgs ~= extraEmccFlags;
 
     auto result = runCmd(cmdArgs);
     if (dubOutputPath.length) std.file.remove(dubOutputPath);

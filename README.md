@@ -6,11 +6,11 @@ This template includes:
 - Emscripten functions
 - A build script for browser-based projects
 
-## How do I make a web build?
+### How do I make a web build?
 
 With a build script called `build_web.d`.
 Building for the web requires [Emscripten](https://emscripten.org/) (version `4.0.23` is recommended).
-It works like this:
+The script works like this:
 
 ```sh
 dmd -run build_web.d
@@ -37,8 +37,9 @@ Available flags:
 struct Flags {
     bool debugBuild   = false; /// Can be used to make a debug build.
     bool gcBuild      = false; /// Can be used to enable GC features. This needs OpenD to work.
-    bool justBuild    = false; /// Can be used to avoid `emrun` after a successful build.
+    bool justBuild    = false; /// Can be used to avoid emrun after a successful build.
     bool buildWithDub = true;  /// Will use a DUB config to compile. More info inside the `doNoGcProject` function.
+    bool doNothing    = false; /// For testing the script without running emcc, dub, ...
 }
 ```
 
@@ -60,3 +61,7 @@ struct Flags {
 5. Upload the ZIP file.
 6. Enable the option "This file will be played in the browser."
 7. Save the changes.
+
+### What libraries can I use with web builds?
+
+- [Joka](https://github.com/Kapendev/joka): A nogc utility library.
