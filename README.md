@@ -1,6 +1,15 @@
 # Raylib-d Template
 
-Building for the web requires [Emscripten](https://emscripten.org/) (version `4.0.23` is recommended), and is done with a build script called `build_web.d`.
+This template includes:
+
+- Text functions that work with D strings
+- Emscripten functions
+- A build script for browser-based projects
+
+## How do I make a web build?
+
+With a build script called `build_web.d`.
+Building for the web requires [Emscripten](https://emscripten.org/) (version `4.0.23` is recommended).
 It works like this:
 
 ```sh
@@ -32,3 +41,22 @@ struct Flags {
     bool buildWithDub = true;  /// Will use a DUB config to compile. More info inside the `doNoGcProject` function.
 }
 ```
+
+### How do I upload web builds to itch.io?
+
+1. Open the web folder.
+2. Select these files and add them to a ZIP file:
+
+    ```
+    favicon.ico
+    index.data
+    index.html
+    index.js
+    index.wasm
+    ```
+
+3. Go to itch.io and create a new project.
+4. Under "Kind of project", choose "HTML."
+5. Upload the ZIP file.
+6. Enable the option "This file will be played in the browser."
+7. Save the changes.
