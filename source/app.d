@@ -7,6 +7,7 @@ bool update() {
     scope (exit) EndDrawing();
 
     drawText("Hello world!", 32, 32, 40);
+    drawText(textFormat("Mouse: (%d %d)\nFPS: %d", GetMouseX(), GetMouseY(), GetFPS()), 32, 132, 40);
     return false;
 }
 
@@ -32,11 +33,6 @@ void ready() {
     updateWindow!(update);
     CloseWindow();
 }
-
-/// Draw text, but only if you are a PascalCase fan.
-alias DrawText = drawText;
-/// Measure text, but only if you are a PascalCase fan.
-alias MeasureText = measureText;
 
 /// Draw text (using default font).
 /// NOTE: fontSize work like in any drawing program but if fontSize is lower than font-base-size, then font-base-size is used.
@@ -146,6 +142,19 @@ Vector2 measureText(Font font, const(char)[] text, float fontSize, float spacing
     textSize.x = tempTextWidth * scaleFactor + ((tempByteCounter - 1) * spacing);
     textSize.y = textHeight;
     return textSize;
+}
+
+static char[1024] textFormatBuffer = void;
+/// Formatting of text with variables to 'embed'.
+/// WARNING: String returned will expire after this function is called MAX_TEXTFORMAT_BUFFERS times.
+@trusted nothrow @nogc
+const(char)[] textFormat(A...)(const(char)[] text, A args) {
+    textFormatBuffer[0 .. text.length] = text;
+    textFormatBuffer[text.length] = '\0';
+    auto strz = TextFormat(textFormatBuffer.ptr, args);
+    auto strzLength = 0U;
+    while (strz[strzLength]) strzLength += 1;
+    return strz[0 .. strzLength];
 }
 
 // Emscripten functions.
