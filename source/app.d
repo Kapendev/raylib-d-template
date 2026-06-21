@@ -18,7 +18,7 @@ void ready() {
 
     static void updateWindow(alias loopFunc)() {
         version (WebAssembly) {
-            static void webLoopFunc() {
+            extern(C) static void webLoopFunc() {
                 if (loopFunc()) emscripten_cancel_main_loop();
             }
             emscripten_set_main_loop(&webLoopFunc, 0, true);
@@ -35,6 +35,8 @@ void ready() {
 
 /// Draw text, but only if you are a PascalCase fan.
 alias DrawText = drawText;
+/// Measure text, but only if you are a PascalCase fan.
+alias MeasureText = measureText;
 
 /// Draw text (using default font).
 /// NOTE: fontSize work like in any drawing program but if fontSize is lower than font-base-size, then font-base-size is used.
@@ -84,6 +86,64 @@ void drawText(Font font, const(char)[] text, Vector2 position, Vector2 origin, f
     rlTranslatef(-origin.x, -origin.y, 0.0f);
     drawText(font, text, Vector2(0.0f, 0.0f), fontSize, spacing, tint, textLineSpacing);
     rlPopMatrix();
+}
+
+/// Measure string width for default font.
+int measureText(const(char)[] text, int fontSize, int textLineSpacing = 2) {
+    auto textSize = Vector2(0.0f, 0.0f);
+    // Check if default font has been loaded.
+    if (GetFontDefault().texture.id != 0) {
+        auto defaultFontSize = 10; // Default Font glyphs height in pixel.
+        if (fontSize < defaultFontSize) fontSize = defaultFontSize;
+        auto spacing = fontSize / defaultFontSize;
+        textSize = measureText(GetFontDefault(), text, fontSize, spacing, textLineSpacing);
+    }
+    return cast(int) textSize.x;
+}
+
+/// Measure string size for Font.
+Vector2 measureText(Font font, const(char)[] text, float fontSize, float spacing, int textLineSpacing = 2) {
+    auto textSize = Vector2(0.0f, 0.0f);
+    // Security check.
+    if ((font.texture.id == 0) || (text == null) || (text[0] == '\0')) return textSize;
+    // Get size in bytes of text.
+    int size = cast(int) text.length;
+    // Used to count longer text line num chars.
+    int tempByteCounter = 0;
+    int byteCounter     = 0;
+    float textWidth     = 0.0f;
+    // Used to count longer text line width.
+    float tempTextWidth = 0.0f;
+    float textHeight    = fontSize;
+    float scaleFactor   = fontSize / cast(float) font.baseSize;
+    // Current character.
+    int letter = 0;
+    // Index position in sprite font.
+    int index = 0;
+
+    for (int i = 0; i < size;) {
+        byteCounter++;
+        int codepointByteCount = 0;
+        letter = GetCodepointNext(&text[i], &codepointByteCount);
+        index = GetGlyphIndex(font, letter);
+        i += codepointByteCount;
+
+        if (letter != '\n') {
+            if (font.glyphs[index].advanceX > 0) textWidth += font.glyphs[index].advanceX;
+            else textWidth += (font.recs[index].width + font.glyphs[index].offsetX);
+        } else {
+            if (tempTextWidth < textWidth) tempTextWidth = textWidth;
+            byteCounter = 0;
+            textWidth = 0;
+            textHeight += fontSize + textLineSpacing;
+        }
+        if (tempByteCounter < byteCounter) tempByteCounter = byteCounter;
+    }
+
+    if (tempTextWidth < textWidth) tempTextWidth = textWidth;
+    textSize.x = tempTextWidth * scaleFactor + ((tempByteCounter - 1) * spacing);
+    textSize.y = textHeight;
+    return textSize;
 }
 
 // Emscripten functions.
