@@ -89,6 +89,7 @@ void drawText(Font font, const(char)[] text, Vector2 position, Vector2 origin, f
 }
 
 /// Measure string width for default font.
+@trusted nothrow @nogc
 int measureText(const(char)[] text, int fontSize, int textLineSpacing = 2) {
     auto textSize = Vector2(0.0f, 0.0f);
     // Check if default font has been loaded.
@@ -102,6 +103,7 @@ int measureText(const(char)[] text, int fontSize, int textLineSpacing = 2) {
 }
 
 /// Measure string size for Font.
+@trusted nothrow @nogc
 Vector2 measureText(Font font, const(char)[] text, float fontSize, float spacing, int textLineSpacing = 2) {
     auto textSize = Vector2(0.0f, 0.0f);
     // Security check.
