@@ -4,9 +4,9 @@ This template includes:
 
 - Text functions that work with D strings
 - Emscripten functions
-- A build script for browser-based projects
+- A build script for web-based projects
 
-### How do I make a web build?
+## How do I make a web build?
 
 With a build script called `build_web.d`.
 Building for the web requires [Emscripten](https://emscripten.org/) (version `4.0.23` is recommended).
@@ -43,7 +43,7 @@ struct Flags {
 }
 ```
 
-### How do I upload web builds to itch.io?
+## How do I upload web builds to itch.io?
 
 1. Open the web folder.
 2. Select these files and add them to a ZIP file:
@@ -62,6 +62,15 @@ struct Flags {
 6. Enable the option "This file will be played in the browser."
 7. Save the changes.
 
-### What libraries can I use with web builds?
+## How do I load assets with web builds?
+
+By using paths that are relative to the "Emscripten folder."
+The Emscripten folder is the project's source folder by default.
+For example, `./app.d` is a valid path and can be used to load the main D file.
+
+Additionally, the `build_web.d` script checks for a folder called "assets" in the project folder.
+If it exists, then this will be the Emscripten folder.
+
+## What libraries can I use with web builds?
 
 - [Joka](https://github.com/Kapendev/joka): A nogc utility library.

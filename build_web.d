@@ -1,8 +1,8 @@
 #!/bin/env -S dmd -run
 
-immutable string[] extraLdcFlags = [];
+immutable string[] extraLdcFlags   = [];
 immutable string[] extraOpendFlags = [];
-immutable string[] extraEmccFlags = [];
+immutable string[] extraEmccFlags  = [];
 
 struct Flags {
     bool debugBuild   = false; /// Can be used to make a debug build.
