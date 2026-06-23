@@ -74,3 +74,4 @@ If it exists, then this will be the Emscripten folder.
 ## What libraries can I use with web builds?
 
 - [Joka](https://github.com/Kapendev/joka): A nogc utility library.
+- [Microui-d](https://github.com/Kapendev/microui-d): A tiny immediate-mode UI library.
