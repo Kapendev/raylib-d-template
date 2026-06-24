@@ -5,11 +5,11 @@ immutable string[] extraOpendFlags = [];
 immutable string[] extraEmccFlags  = [];
 
 struct Flags {
-    bool debugBuild   = false; /// Can be used to make a debug build.
-    bool gcBuild      = false; /// Can be used to enable GC features. This needs OpenD to work.
-    bool justBuild    = false; /// Can be used to avoid emrun after a successful build.
-    bool buildWithDub = true;  /// Will use a DUB config to compile. More info inside the `doNoGcProject` function.
-    bool doNothing    = false; /// For testing the script without running emcc, dub, ...
+    bool debugBuild = false; /// Can be used to make a debug build.
+    bool gcBuild    = false; /// Can be used to enable GC features. This needs OpenD to work.
+    bool dubBuild   = true;  /// Will use a DUB config to compile. More info inside the `doNoGcProject` function.
+    bool justBuild  = false; /// Can be used to avoid emrun after a successful build.
+    bool doNothing  = false; /// For testing the script without running emcc, dub, ...
 }
 
 struct CorePaths {
@@ -38,8 +38,11 @@ struct CorePaths {
 int main(string[] args) {
     auto flags = Flags();
     foreach (arg; args) {
+        auto cleanArg = arg.stripLeft("-").stripLeft("-");
         static foreach (flagIndex, flagName; Flags.tupleof) {
-            if (arg.stripLeft("-").stripLeft("-") == flagName.stringof) flags.tupleof[flagIndex] = true;
+            if (cleanArg.endsWith(flagName.stringof)) {
+                flags.tupleof[flagIndex] = cleanArg.startsWith("no-") ? false : true;
+            }
         }
     }
     if (flags.doNothing) {
@@ -66,14 +69,24 @@ int main(string[] args) {
         faviconDummy = true;
     }
 
-    if (flags.gcBuild) {
-        if (doGcProject(flags, corePaths)) return 1;
-    } else {
-        if (doNoGcProject(flags, corePaths)) return 1;
+    void cleanFolder() {
+        removeObjectFilesFromFolder(".");
+        std.file.remove(corePaths.emscriptenShellPath);
+        if (faviconDummy) std.file.remove(corePaths.faviconPath);
     }
-    removeObjectFilesFromFolder(".");
-    std.file.remove(corePaths.emscriptenShellPath);
-    if (faviconDummy) std.file.remove(corePaths.faviconPath);
+
+    if (flags.gcBuild) {
+        if (doGcProject(flags, corePaths)) {
+            cleanFolder();
+            return 1;
+        }
+    } else {
+        if (doNoGcProject(flags, corePaths)) {
+            cleanFolder();
+            return 1;
+        }
+    }
+    cleanFolder();
 
     return (flags.justBuild || !corePaths.outputPath.exists) ? 0 : runCmd([emrunName, corePaths.outputPath]).status;
 }
@@ -120,7 +133,7 @@ int doNoGcProject(in Flags flags, in CorePaths corePaths) {
     auto isPackageOutsideSource = true;
     auto sourceFilePaths = getSourceFilePaths(isPackageOutsideSource, moduleName, packageSourcePath, corePaths);
 
-    if (flags.buildWithDub) {
+    if (flags.dubBuild) {
         string[] cmdArgs = ["dub", "build", "--compiler=" ~ ldc2, "--arch=wasm32-emscripten", "--config", dubConfigName];
         if (!flags.debugBuild) cmdArgs ~= ["--build", "release"];
         if (runCmd(cmdArgs).status) return 1;
@@ -129,7 +142,7 @@ int doNoGcProject(in Flags flags, in CorePaths corePaths) {
         if (!flags.debugBuild) cmdArgs ~= "--release";
         cmdArgs ~= sourceFilePaths;
         cmdArgs ~= "-I=" ~ corePaths.sourcePath;
-        cmdArgs ~= "-J=" ~ packageSourcePath;
+        cmdArgs ~= "-J=" ~ corePaths.assetsPath;
         cmdArgs ~= extraLdcFlags;
         if (runCmd(cmdArgs).status) return 1;
     }
@@ -137,7 +150,7 @@ int doNoGcProject(in Flags flags, in CorePaths corePaths) {
     string[] cmdArgs = [emccName, "-o", corePaths.outputPath, corePaths.libPath];
     cmdArgs.appendLinkerFlags(false, corePaths);
     auto dubOutputPath = "";
-    if (flags.buildWithDub) {
+    if (flags.dubBuild) {
         foreach (entry; dirEntries(".", SpanMode.shallow)) {
             auto path = entry.name;
             if (path.findStart(dubTargetName) != -1) {

@@ -35,11 +35,11 @@ Available flags:
 
 ```d
 struct Flags {
-    bool debugBuild   = false; /// Can be used to make a debug build.
-    bool gcBuild      = false; /// Can be used to enable GC features. This needs OpenD to work.
-    bool justBuild    = false; /// Can be used to avoid emrun after a successful build.
-    bool buildWithDub = true;  /// Will use a DUB config to compile. More info inside the `doNoGcProject` function.
-    bool doNothing    = false; /// For testing the script without running emcc, dub, ...
+    bool debugBuild = false; /// Can be used to make a debug build.
+    bool gcBuild    = false; /// Can be used to enable GC features. This needs OpenD to work.
+    bool dubBuild   = true;  /// Will use a DUB config to compile. More info inside the `doNoGcProject` function.
+    bool justBuild  = false; /// Can be used to avoid emrun after a successful build.
+    bool doNothing  = false; /// For testing the script without running emcc, dub, ...
 }
 ```
 

@@ -6,6 +6,7 @@
     "dependencies": {
         "raylib-d": "*"
     },
+    "stringImportPaths": ["source"],
     "configurations": [
         {
             "name": "default",
