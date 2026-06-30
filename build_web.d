@@ -98,7 +98,7 @@ int doGcProject(in Flags flags, in CorePaths corePaths) {
 
     auto packagePath = packageName;
     auto packageSourcePath = packageName;
-    setPackagePaths(packagePath, packageSourcePath, packageName, packageRepoLink, corePaths);
+    setPackagePaths(packagePath, packageSourcePath, packageName, moduleName, packageRepoLink, corePaths);
     auto isPackageOutsideSource = true;
     auto sourceFilePaths = getSourceFilePaths(isPackageOutsideSource, moduleName, packageSourcePath, corePaths);
 
@@ -129,7 +129,7 @@ int doNoGcProject(in Flags flags, in CorePaths corePaths) {
 
     auto packagePath = packageName;
     auto packageSourcePath = packageName;
-    setPackagePaths(packagePath, packageSourcePath, packageName, packageRepoLink, corePaths);
+    setPackagePaths(packagePath, packageSourcePath, packageName, moduleName, packageRepoLink, corePaths);
     auto isPackageOutsideSource = true;
     auto sourceFilePaths = getSourceFilePaths(isPackageOutsideSource, moduleName, packageSourcePath, corePaths);
 
@@ -173,12 +173,13 @@ int doNoGcProject(in Flags flags, in CorePaths corePaths) {
     return result.status;
 }
 
-void setPackagePaths(ref string packagePath, ref string packageSourcePath, string packageName, string packageRepoLink, in CorePaths corePaths) {
-    if (!packagePath.exists) packagePath = buildPath(corePaths.webPath, packagePath);
+void setPackagePaths(ref string packagePath, ref string packageSourcePath, string packageName, string moduleName, string packageRepoLink, in CorePaths corePaths) {
+    if (!packagePath.exists) packagePath = buildPath(corePaths.sourcePath, moduleName);
+    if (!packagePath.exists) packagePath = buildPath(corePaths.webPath, packageName);
     if (!packagePath.exists) packagePath = getPackagePathFromDub(packageName);
     if (!packagePath.exists && packageRepoLink.length) {
         packagePath = buildPath(corePaths.webPath, packagePath);
-        runCmd(["git", "clone", "--depth", "1", packageRepoLink, packagePath]);
+        runCmd(["git", "clone", "--depth", "1", packageRepoLink, buildPath(corePaths.webPath, packageName)]);
     }
     packageSourcePath = buildPath(packagePath, "source");
     if (!packageSourcePath.exists) packageSourcePath = buildPath(packagePath, "src");
