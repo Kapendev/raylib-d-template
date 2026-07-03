@@ -384,3 +384,10 @@ import std.string;
 import std.path;
 import std.file;
 import std.process;
+
+// ---
+// Copyright 2026 Alexandros F. G. Kapretsos
+// SPDX-License-Identifier: MIT
+// Email: alexandroskapretsos@gmail.com
+// Project: https://github.com/Kapendev/joka
+// ---
