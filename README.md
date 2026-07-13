@@ -66,10 +66,11 @@ struct Flags {
 
 By using paths that are relative to the "Emscripten folder."
 The Emscripten folder is the project's source folder by default.
-For example, `./app.d` is a valid path and can be used to load the main D file.
+For example, `source/app.d` is a valid path and can be used to load the main D file.
 
 Additionally, the `build_web.d` script checks for a folder called "assets" in the project folder.
 If it exists, then this will be the Emscripten folder.
+In this case, `assets/map.csv` is a valid path.
 
 ## What libraries can I use with web builds?
 
