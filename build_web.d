@@ -57,7 +57,7 @@ int main(string[] args) {
     corePaths.buildWebPaths();
 
     if (!corePaths.libPath.exists) {
-        writeln(`ERROR: Missing "`, corePaths.libPath, `" file.`);
+        writeln(`Missing "`, corePaths.libPath, `" file.`);
         writeln(`Download the webassembly zip from "https://github.com/raysan5/raylib/releases" and extract it into the folder.`);
         return 1;
     }

@@ -1,10 +1,16 @@
 # Raylib-d Template
 
+A truly simple project template for raylib.
 This template includes:
 
+- One D file that includes everything
 - Text functions that work with D strings
 - Emscripten functions
 - A build script for web-based projects
+
+## Example Project
+
+An example is available on [itch.io](https://kapendev.itch.io/k-merge-with-me).
 
 ## How do I make a web build?
 
