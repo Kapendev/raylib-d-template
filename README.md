@@ -16,7 +16,7 @@ An example is available on [itch.io](https://kapendev.itch.io/k-merge-with-me).
 
 Web builds can be made with a script called `build_web.d`.
 Building for the web requires [LDC](https://github.com/ldc-developers/ldc/releases) and [Emscripten](https://emscripten.org/) (version `4.0.23` is recommended).
-While installing LDC, make sure to also install `ldc2-X.Y.Z-addon-emscripten.tar.xz`.
+While installing LDC, unpack `ldc2-X.Y.Z-addon-emscripten.tar.xz` from the same [releases page](https://github.com/ldc-developers/ldc/releases) into the LDC installation folder.
 
 To use the script, run:
 
