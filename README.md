@@ -1,12 +1,12 @@
 # Raylib-d Template
 
-A truly simple project template for raylib.
-This template includes:
+A simple project template for raylib.
+It includes:
 
-- One D file that includes everything
-- Text functions that work with D strings
-- Emscripten functions
-- A build script for web-based projects
+- One D file that includes everything.
+- Helper functions that take D strings.
+- Emscripten functions.
+- A script that builds for the web.
 
 ## Example Project
 
@@ -14,9 +14,11 @@ An example is available on [itch.io](https://kapendev.itch.io/k-merge-with-me).
 
 ## How do I make a web build?
 
-With a build script called `build_web.d`.
-Building for the web requires [Emscripten](https://emscripten.org/) (version `4.0.23` is recommended).
-The script works like this:
+Web builds can be made with a script called `build_web.d`.
+Building for the web requires [LDC](https://github.com/ldc-developers/ldc/releases) and [Emscripten](https://emscripten.org/) (version `4.0.23` is recommended).
+While installing LDC, make sure to also install `ldc2-X.Y.Z-addon-emscripten.tar.xz`.
+
+To use the script, run:
 
 ```sh
 dmd -run build_web.d
@@ -24,29 +26,13 @@ dmd -run build_web.d
 # Or: ./build_web.d
 ```
 
-Projects requiring the D runtime can be built using the `-gcBuild` flag provided by the build script.
-This flag also requires [OpenD](https://opendlang.org/index.html).
-Note that exceptions are not supported and that currently some DUB related limitations apply like having to include all dependencies inside the source folder.
-Make sure `opend install xpack-emscripten` has been run at least once before using it.
-
-Example:
-
-```sh
-dmd -run build_web.d -gcBuild
-# Or: ldc2 -run build_web.d -gcBuild
-# Or: ./build_web.d -gcBuild
 ```
-
-Available flags:
-
-```d
-struct Flags {
-    bool debugBuild = false; /// Can be used to make a debug build.
-    bool gcBuild    = false; /// Can be used to enable GC features. This needs OpenD to work.
-    bool dubBuild   = true;  /// Will use a DUB config to compile. More info inside the `doNoGcProject` function.
-    bool justBuild  = false; /// Can be used to avoid emrun after a successful build.
-    bool doNothing  = false; /// For testing the script without running emcc, dub, ...
-}
+Usage:
+  build_web.d [flags]
+Flags:
+  -betterc  Use the `-betterC` flag.
+  -release  Use the `-release` flag.
+  -build    Avoid emrun after a successful build.
 ```
 
 ## How do I upload web builds to itch.io?
@@ -55,7 +41,6 @@ struct Flags {
 2. Select these files and add them to a ZIP file:
 
     ```
-    favicon.ico
     index.data
     index.html
     index.js
@@ -70,15 +55,6 @@ struct Flags {
 
 ## How do I load assets with web builds?
 
-By using paths that are relative to the "Emscripten folder."
-The Emscripten folder is the project's source folder by default.
-For example, `source/app.d` is a valid path and can be used to load the main D file.
-
-Additionally, the `build_web.d` script checks for a folder called "assets" in the project folder.
-If it exists, then this will be the Emscripten folder.
-In this case, `assets/map.csv` is a valid path.
-
-## What libraries can I use with web builds?
-
-- [Joka](https://github.com/Kapendev/joka): A nogc utility library.
-- [Microui-d](https://github.com/Kapendev/microui-d): A tiny immediate-mode UI library.
+Use paths from the project root.
+By default the packaged folder is `source`, so `source/app.d` is a valid path.
+If an `assets` folder exists in the project folder, that is packaged instead, so `assets/map.csv` is a valid path.
