@@ -2,10 +2,8 @@
     "name": "raylib-d-template",
     "description": "A minimal D application.",
     "license": "proprietary",
-    "authors": ["YOU"],
-    "dependencies": {
-        "raylib-d": "*"
-    },
+    "authors": ["You"],
+    "dependencies": {"raylib-d": "*"},
     "stringImportPaths": ["source"],
     "configurations": [
         {
@@ -17,12 +15,6 @@
             "lflags-posix": ["-L."],
             "lflags-osx": ["-rpath", "@executable_path/"],
             "lflags-linux": ["-rpath=$$ORIGIN"]
-        },
-        {
-            "name": "wasm",
-            "targetType": "staticLibrary",
-            "targetName": "game_wasm",
-            "dflags": ["-i", "-betterC", "-checkaction=halt"]
         }
     ]
 }

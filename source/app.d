@@ -6,8 +6,10 @@ bool update() {
     ClearBackground(Color(96, 96, 96, 255));
     scope (exit) EndDrawing();
 
+    auto info = textFormat("Mouse: (%d %d)\nFPS: %d", GetMouseX(), GetMouseY(), GetFPS());
     drawText("Hello world!", 32, 32, 40);
-    drawText(textFormat("Mouse: (%d %d)\nFPS: %d", GetMouseX(), GetMouseY(), GetFPS()), 32, 132, 40);
+    drawText(info, 32, 100, 40);
+    drawTextCentered("UwU", GetScreenWidth() / 2, GetScreenHeight() / 2, 40);
     return false;
 }
 
@@ -44,9 +46,13 @@ version (WebAssembly) {
 
 // A `-betterC` trick.
 version (D_BetterC) {
-    extern(C) void main() => ready();
+    extern(C) void main(int argc, char** argv) {
+        ready();
+    }
 } else {
-    void main() => ready();
+    void main() {
+        ready();
+    }
 }
 
 // Helper functions that mainly avoid C strings in an efficient way.
@@ -55,7 +61,7 @@ version (D_BetterC) {
     /// NOTE: fontSize work like in any drawing program but if fontSize is lower than font-base-size, then font-base-size is used.
     /// NOTE: chars spacing is proportional to fontSize.
     void drawText(const(char)[] text, int posX, int posY, int fontSize, Color color = Colors.WHITE, int textLineSpacing = 2) {
-        enum defaultFontSize = 10; // Default Font chars height in pixel.
+        enum defaultFontSize = 10;
         if (fontSize < defaultFontSize) fontSize = defaultFontSize;
         drawText(GetFontDefault(), text, Vector2(posX, posY), fontSize, fontSize / defaultFontSize, color, textLineSpacing);
     }
@@ -64,9 +70,9 @@ version (D_BetterC) {
     /// NOTE: chars spacing is NOT proportional to fontSize.
     void drawText(Font font, const(char)[] text, Vector2 position, float fontSize, float spacing, Color tint = Colors.WHITE, int textLineSpacing = 2) {
         if (font.texture.id == 0) font = GetFontDefault();
-        auto textOffsetY = 0.0f;                     // Offset between lines (on linebreak '\n').
-        auto textOffsetX = 0.0f;                     // Offset X to next character to draw.
-        auto scaleFactor = fontSize / font.baseSize; // Character quad scaling factor.
+        auto textOffsetY = 0.0f;
+        auto textOffsetX = 0.0f;
+        auto scaleFactor = fontSize / font.baseSize;
         for (auto i = 0; i < text.length;) {
             auto codepointByteCount = 0;
             auto codepoint = GetCodepointNext(&text[i], &codepointByteCount);
@@ -98,12 +104,22 @@ version (D_BetterC) {
         rlPopMatrix();
     }
 
+    /// Draw horizontally centered text (using default font).
+    void drawTextCentered(const(char)[] text, int x, int y, int fontSize, Color color = Colors.WHITE, int textLineSpacing = 2) {
+        drawText(text, x - measureText(text, fontSize, textLineSpacing) / 2, y, fontSize, color, textLineSpacing);
+    }
+
+    /// Draw horizontally centered text using Font.
+    void drawTextCentered(Font font, const(char)[] text, Vector2 position, float fontSize, float spacing, Color tint = Colors.WHITE, int textLineSpacing = 2) {
+        auto size = measureText(font, text, fontSize, spacing, textLineSpacing);
+        drawText(font, text, Vector2(position.x - size.x / 2, position.y), fontSize, spacing, tint, textLineSpacing);
+    }
+
     /// Measure string width for default font.
     int measureText(const(char)[] text, int fontSize, int textLineSpacing = 2) {
         auto textSize = Vector2(0.0f, 0.0f);
-        // Check if default font has been loaded.
         if (GetFontDefault().texture.id != 0) {
-            auto defaultFontSize = 10; // Default Font glyphs height in pixel.
+            enum defaultFontSize = 10;
             if (fontSize < defaultFontSize) fontSize = defaultFontSize;
             auto spacing = fontSize / defaultFontSize;
             textSize = measureText(GetFontDefault(), text, fontSize, spacing, textLineSpacing);
@@ -114,26 +130,21 @@ version (D_BetterC) {
     /// Measure string size for Font.
     Vector2 measureText(Font font, const(char)[] text, float fontSize, float spacing, int textLineSpacing = 2) {
         auto textSize = Vector2(0.0f, 0.0f);
-        // Security check.
         if ((font.texture.id == 0) || (text == null) || (text[0] == '\0')) return textSize;
-        // Get size in bytes of text.
-        int size = cast(int) text.length;
-        // Used to count longer text line num chars.
-        int tempByteCounter = 0;
-        int byteCounter     = 0;
-        float textWidth     = 0.0f;
-        // Used to count longer text line width.
-        float tempTextWidth = 0.0f;
-        float textHeight    = fontSize;
-        float scaleFactor   = fontSize / cast(float) font.baseSize;
-        // Current character.
-        int letter = 0;
-        // Index position in sprite font.
-        int index = 0;
 
-        for (int i = 0; i < size;) {
+        auto size            = cast(int) text.length;
+        auto tempByteCounter = 0;
+        auto byteCounter     = 0;
+        auto textWidth       = 0.0f;
+        auto tempTextWidth   = 0.0f;
+        auto textHeight      = fontSize;
+        auto scaleFactor     = fontSize / cast(float) font.baseSize;
+        auto letter          = 0;
+        auto index           = 0;
+
+        for (auto i = 0; i < size;) {
+            auto codepointByteCount = 0;
             byteCounter++;
-            int codepointByteCount = 0;
             letter = GetCodepointNext(&text[i], &codepointByteCount);
             index = GetGlyphIndex(font, letter);
             i += codepointByteCount;
@@ -161,11 +172,51 @@ version (D_BetterC) {
     /// Formatting of text with variables to 'embed'.
     /// WARNING: String returned will expire after this function is called MAX_TEXTFORMAT_BUFFERS times.
     const(char)[] textFormat(A...)(const(char)[] text, A args) {
-        _textFormatBuffer[0 .. text.length] = text;
+        foreach (i; 0 .. text.length) _textFormatBuffer[i] = text[i];
         _textFormatBuffer[text.length] = '\0';
         auto strz = TextFormat(_textFormatBuffer.ptr, args);
         auto strzLength = 0U;
         while (strz[strzLength]) strzLength += 1;
         return strz[0 .. strzLength];
+    }
+
+    /// Load texture from file into GPU memory (VRAM).
+    Texture2D loadTexture(const(char)[] path) {
+        return LoadTexture(textFormat(path).ptr);
+    }
+
+    /// Load image from file into CPU memory (RAM).
+    Image loadImage(const(char)[] path) {
+        return LoadImage(textFormat(path).ptr);
+    }
+
+    /// Load font from file into GPU memory (VRAM).
+    Font loadFont(const(char)[] path) {
+        return LoadFont(textFormat(path).ptr);
+    }
+
+    /// Load wave data from file.
+    Wave loadWave(const(char)[] path) {
+        return LoadWave(textFormat(path).ptr);
+    }
+
+    /// Load sound from file.
+    Sound loadSound(const(char)[] path) {
+        return LoadSound(textFormat(path).ptr);
+    }
+
+    /// Load music stream from file.
+    Music loadMusic(const(char)[] path) {
+        return LoadMusicStream(textFormat(path).ptr);
+    }
+
+    /// Load model from files (meshes and materials).
+    Model loadModel(const(char)[] path) {
+        return LoadModel(textFormat(path).ptr);
+    }
+
+    /// Load shader from files and bind default locations.
+    Shader loadShader(const(char)[] vs, const(char)[] fs) {
+        return LoadShader(textFormat(vs).ptr, textFormat(fs).ptr);
     }
 }
