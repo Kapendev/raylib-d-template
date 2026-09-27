@@ -232,5 +232,5 @@ int run(string[] args...) {
 // Copyright 2026 Alexandros F. G. Kapretsos
 // SPDX-License-Identifier: MIT
 // Email: alexandroskapretsos@gmail.com
-// Project: https://github.com/Kapendev/joka
+// Project: https://github.com/Kapendev/raylib-d-template
 // ---
