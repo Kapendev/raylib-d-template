@@ -3,8 +3,8 @@
 A simple project template for raylib.
 It includes:
 
-- One D file that includes everything.
-- Helper functions that take D strings.
+- One D file.
+- Helper functions that accept D strings.
 - Emscripten functions.
 - A script that builds for the web.
 
