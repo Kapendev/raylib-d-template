@@ -26,6 +26,8 @@ dmd -run build_web.d
 # Or: ./build_web.d
 ```
 
+API:
+
 ```
 Usage:
   build_web.d [flags]
@@ -35,7 +37,7 @@ Flags:
   -build    Avoid emrun after a successful build.
 ```
 
-### Uploading Web Builds to itch.io
+### Uploading to itch.io
 
 1. Open the web folder.
 2. Select the `index.*` files and add them to a ZIP file.
@@ -43,7 +45,7 @@ Flags:
 4. Under "Kind of project", choose "HTML."
 5. Upload the ZIP file and enable the option "This file will be played in the browser."
 
-### Loading Assets With Web Builds
+### Loading Assets
 
 Use paths from the project root.
 By default the packaged folder is `source`, so `source/app.d` is a valid path.
