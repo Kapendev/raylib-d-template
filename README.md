@@ -1,6 +1,6 @@
 # Raylib-d Template
 
-A simple template for raylib-d projects.
+A simple template for [raylib-d](https://github.com/schveiguy/raylib-d) projects.
 It includes:
 
 - One D file.
