@@ -53,6 +53,7 @@ int main(string[] args) {
     auto command = ["ldc2", "--mtriple=wasm32-emscripten"] ~ dflags;
     command ~= mainFilePaths;
     command ~= libPath;
+    if (sourcePath != raylibImportPath) command ~= "-I=" ~ sourcePath;
     command ~= "-I=" ~ raylibImportPath;
     command ~= "-of=" ~ outputPath;
     command ~= "--Xcc=-DPLATFORM_WEB";
