@@ -12,7 +12,7 @@ It includes:
 
 An example is available on [itch.io](https://kapendev.itch.io/k-merge-with-me).
 
-## How do I make a web build?
+## Web Builds
 
 Web builds can be made with a script called `build_web.d`.
 Building for the web requires [LDC](https://github.com/ldc-developers/ldc/releases) and [Emscripten](https://emscripten.org/) (version `4.0.23` is recommended).
@@ -35,25 +35,15 @@ Flags:
   -build    Avoid emrun after a successful build.
 ```
 
-## How do I upload web builds to itch.io?
+### Uploading Web Builds to itch.io
 
 1. Open the web folder.
-2. Select these files and add them to a ZIP file:
-
-    ```
-    index.data
-    index.html
-    index.js
-    index.wasm
-    ```
-
+2. Select the `index.*` files and add them to a ZIP file.
 3. Go to itch.io and create a new project.
 4. Under "Kind of project", choose "HTML."
-5. Upload the ZIP file.
-6. Enable the option "This file will be played in the browser."
-7. Save the changes.
+5. Upload the ZIP file and enable the option "This file will be played in the browser."
 
-## How do I load assets with web builds?
+### Loading Assets With Web Builds
 
 Use paths from the project root.
 By default the packaged folder is `source`, so `source/app.d` is a valid path.
