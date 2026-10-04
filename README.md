@@ -10,7 +10,9 @@ It includes:
 
 ## Example Project
 
-An example is available on [itch.io](https://kapendev.itch.io/k-merge-with-me).
+An example with source code is available on [itch.io](https://kapendev.itch.io/k-merge-with-me).
+
+[![dw](https://img.itch.zone/aW1hZ2UvNDc3MDEyNy8yODQ0MTI1OC5wbmc=/original/%2ByIKwH.png)](https://kapendev.itch.io/k-merge-with-me)
 
 ## Web Builds
 
