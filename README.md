@@ -14,6 +14,20 @@ An example with source code is available on [itch.io](https://kapendev.itch.io/k
 
 [![dw](https://img.itch.zone/aW1hZ2UvNDc3MDEyNy8yODQ0MTI1OC5wbmc=/original/%2ByIKwH.png)](https://kapendev.itch.io/k-merge-with-me)
 
+## Quick Start
+
+This section shows how to install the template and raylib-d using [DUB](https://dub.pm/).
+Run the following commands:
+
+```sh
+git clone --depth=1 https://github.com/Kapendev/raylib-d-template new_project
+cd new_project
+dub run -y raylib-d:install -- -u=no -q
+dub run
+```
+
+If everything is set up correctly, a window will appear showing some text.
+
 ## Web Builds
 
 Web builds can be made with a script called `build_web.d`.
