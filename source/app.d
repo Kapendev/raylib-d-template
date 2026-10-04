@@ -180,43 +180,63 @@ version (D_BetterC) {
         return strz[0 .. strzLength];
     }
 
+    static char[2048][2] _loadAssetBuffer = void;
+
     /// Load texture from file into GPU memory (VRAM).
     Texture2D loadTexture(const(char)[] path) {
-        return LoadTexture(textFormat(path).ptr);
+        foreach (i; 0 .. path.length) _loadAssetBuffer[0][i] = path[i];
+        _loadAssetBuffer[0][path.length] = '\0';
+        return LoadTexture(_loadAssetBuffer[0].ptr);
     }
 
     /// Load image from file into CPU memory (RAM).
     Image loadImage(const(char)[] path) {
-        return LoadImage(textFormat(path).ptr);
+        foreach (i; 0 .. path.length) _loadAssetBuffer[0][i] = path[i];
+        _loadAssetBuffer[0][path.length] = '\0';
+        return LoadImage(_loadAssetBuffer[0].ptr);
     }
 
     /// Load font from file into GPU memory (VRAM).
     Font loadFont(const(char)[] path) {
-        return LoadFont(textFormat(path).ptr);
+        foreach (i; 0 .. path.length) _loadAssetBuffer[0][i] = path[i];
+        _loadAssetBuffer[0][path.length] = '\0';
+        return LoadFont(_loadAssetBuffer[0].ptr);
     }
 
     /// Load wave data from file.
     Wave loadWave(const(char)[] path) {
-        return LoadWave(textFormat(path).ptr);
+        foreach (i; 0 .. path.length) _loadAssetBuffer[0][i] = path[i];
+        _loadAssetBuffer[0][path.length] = '\0';
+        return LoadWave(_loadAssetBuffer[0].ptr);
     }
 
     /// Load sound from file.
     Sound loadSound(const(char)[] path) {
-        return LoadSound(textFormat(path).ptr);
+        foreach (i; 0 .. path.length) _loadAssetBuffer[0][i] = path[i];
+        _loadAssetBuffer[0][path.length] = '\0';
+        return LoadSound(_loadAssetBuffer[0].ptr);
     }
 
     /// Load music stream from file.
     Music loadMusic(const(char)[] path) {
-        return LoadMusicStream(textFormat(path).ptr);
+        foreach (i; 0 .. path.length) _loadAssetBuffer[0][i] = path[i];
+        _loadAssetBuffer[0][path.length] = '\0';
+        return LoadMusicStream(_loadAssetBuffer[0].ptr);
     }
 
     /// Load model from files (meshes and materials).
     Model loadModel(const(char)[] path) {
-        return LoadModel(textFormat(path).ptr);
+        foreach (i; 0 .. path.length) _loadAssetBuffer[0][i] = path[i];
+        _loadAssetBuffer[0][path.length] = '\0';
+        return LoadModel(_loadAssetBuffer[0].ptr);
     }
 
     /// Load shader from files and bind default locations.
     Shader loadShader(const(char)[] vs, const(char)[] fs) {
-        return LoadShader(textFormat(vs).ptr, textFormat(fs).ptr);
+        foreach (i; 0 .. vs.length) _loadAssetBuffer[0][i] = vs[i];
+        _loadAssetBuffer[0][vs.length] = '\0';
+        foreach (i; 0 .. fs.length) _loadAssetBuffer[1][i] = fs[i];
+        _loadAssetBuffer[1][fs.length] = '\0';
+        return LoadShader(_loadAssetBuffer[0].ptr, _loadAssetBuffer[1].ptr);
     }
 }

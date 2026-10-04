@@ -1,7 +1,7 @@
 {
     "name": "raylib-d-template",
     "description": "A minimal D application.",
-    "license": "proprietary",
+    "license": "MIT",
     "authors": ["You"],
     "dependencies": {"raylib-d": "*"},
     "stringImportPaths": ["source"],
