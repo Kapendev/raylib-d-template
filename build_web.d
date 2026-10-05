@@ -56,6 +56,7 @@ int main(string[] args) {
     if (sourcePath != raylibImportPath) command ~= "-I=" ~ sourcePath;
     command ~= "-I=" ~ raylibImportPath;
     command ~= "-of=" ~ outputPath;
+    command ~= "--Xcc=" ~ (flags.release ? "-O2" : "-g");
     command ~= "--Xcc=-DPLATFORM_WEB";
     command ~= "--Xcc=-sUSE_GLFW=3";
     command ~= "--Xcc=-sEXPORTED_RUNTIME_METHODS=HEAPF32,requestFullscreen";
